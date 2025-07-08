@@ -1,0 +1,148 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Edit Contact</title>
+    </head>
+    <body onload="getContacts()">
+        <div id="avatarImage"></div>
+        <form id="editForm">
+            <label for="firstname">First Name:</label>
+            <input type="text" id="firstname" name="firstname" readonly><br/>
+            <label for="lastname">Last Name:</label>
+            <input type="text" id="lastname" name="lastname" readonly><br/>
+            <label for="mobile">Mobile:</label>
+            <input type="text" id="mobile" name="mobile" readonly><br/>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" readonly><br/>
+            <label for="avatar" id="avatarLabel" hidden>Change profile image</label><br/>
+            <input type="file" id="avatar" name="avatar" hidden><br/>
+            <br/>
+            <button type="submit" id="submitform" hidden>Submit</button>    
+        </form> 
+        <br/>
+        <button id="homeLink" type="button">Home</button>
+        <button id="deleteContact" type="button">Delete</button>
+        <button id="editContact" type="button">Edit</button>
+       
+        <script src="config.js"></script>
+        <script>
+            const id = getId();
+            
+            // Add event listeners
+            document.getElementById("homeLink").addEventListener('click', homeLink);
+            document.getElementById("editContact").addEventListener('click', enableEdit);
+            document.getElementById("deleteContact").addEventListener('click', deleteContact);
+            document.getElementById("submitForm").addEventListener('submit', submitForm);
+            
+            function getId(){
+                const url = window.location.href;
+                const pos = url.search("=");
+                return url.slice(pos + 1);
+            }
+
+            function getContacts(){
+                fetch(rootPath + 'controller/getContact/?id=' + id)
+                .then(function(response){
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(function(data){
+                    displayOutput(data);
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    document.getElementById("avatarImage").innerHTML = "Error loading contact";
+                });
+            }
+
+            function homeLink(){
+                window.location.href = "index.html";
+            }
+
+            function displayOutput(data){
+                const avatarImage = `<img src="${rootPath}controller/uploads/${data[0].avatar}" width="200" alt="Contact avatar"/>`;
+                document.getElementById("avatarImage").innerHTML = avatarImage;
+                
+                // Populate form fields
+                document.getElementById("firstname").value = data[0].firstname;
+                document.getElementById("lastname").value = data[0].lastname;
+                document.getElementById("mobile").value = data[0].mobile;
+                document.getElementById("email").value = data[0].email;
+            }
+
+            function enableEdit() {
+                // Remove readonly attribute
+                document.getElementById("firstname").readOnly = false;
+                document.getElementById("lastname").readOnly = false;
+                document.getElementById("mobile").readOnly = false;
+                document.getElementById("email").readOnly = false;
+                
+                // Show hidden elements
+                document.getElementById("avatarLabel").hidden = false;
+                document.getElementById("avatar").hidden = false;
+                document.getElementById("submitform").hidden = false;
+            }
+
+            function submitForm(e){
+                e.preventDefault();
+
+                const formData = new FormData(document.querySelector("#editForm"));
+                formData.append('apiKey' , apiKey);
+                formData.append('id', id);
+
+                fetch(rootPath + 'controller/edit-contact/', {
+                    method: 'POST',
+                    headers: {'Accept': 'application/json,*.*'},
+                    body: formData
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    if (data == '1') {
+                        alert('Contact updated successfully!');
+                        homeLink();
+                    } else {
+                        alert('Error updating contact: ' + data);
+                        homeLink();
+                    }
+                })
+                .catch(function(error) {
+                    alert('Error: ' + error);
+                });
+            }
+
+            function deleteContact() {
+                // Implement delete logic here
+                if (confirm('Are you sure you want to delete this contact?')) {
+                    fetch(rootPath + 'controller/delete-contact/?id=' + id + '&apiKey=' + apiKey, {
+                        method: 'DELETE'
+                    })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        if (data == '1') {
+                            alert('Contact deleted successfully!');
+                            homeLink();
+                        } else {
+                            alert('Error deleting contact: ' + data);
+                        }
+                    })
+                    .catch(function(error) {
+                        alert('Error: ' + error);
+                    });
+                }
+            }
+        </script>
+    
+        </body>
+</html>

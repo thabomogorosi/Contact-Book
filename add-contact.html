@@ -1,0 +1,57 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title></title>
+    </head>
+    <body>
+        <br/>
+        <form id="editForm">
+            <label for="firstname">First Name:</label>
+            <input type="text" id="firstname" name="firstname" required><br/>
+            <label for="lastname">Last Name:</label>
+            <input type="text" id="lastname" name="lastname" required><br/>
+            <label for="mobile">Mobile:</label>
+            <input type="text" id="mobile" name="mobile" required><br/>
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required><br/>
+            <label for="avatar">Select a file</label><br
+            ><input type="file" id="avatar" name="avatar" accept="image/*"><br/>
+            <button type="submit" id="submitform">Submit</button>    
+        </form> 
+        <br/>
+        <button id="homeLink" type="button">Home</button>
+       
+        <script src="config.js"></script>
+        <script>
+            document.getElementById("submitform").addEventListener("click", submitform);
+            document.getElementById("homeLink").addEventListener("click", homeLink);
+            function submitform(e) {
+                e.preventDefault();
+                const form = new FormData(document.querySelector('#editForm'));
+                let apiKey = localStorage.getItem('apiKey');
+                formData.append('apiKey', apiKey);
+                
+                fetch(rootPath + 'controller/insert-contact/', {
+                    method: 'POST',
+                    headers: {'Accept': 'application/json,*-*'},
+                    body: form
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data == '1') {
+                        alert('Contact added successfully!');
+                        homeLink();
+                    } else {
+                        alert('Error adding contact: ' + data);
+                        homeLink();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+            function homeLink(){
+                window.open("index.html", "_self");
+            }
+        
+        </script>
+    </body>
+</html>
